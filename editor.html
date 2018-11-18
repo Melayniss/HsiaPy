@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+
+会Python就能做极客
+setDescription
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Python Web editor - MakerPanda</title>
+        <link rel="stylesheet" type="text/css" href="static/css/style.css" />
+        <link rel="stylesheet" type="text/css" href="static/css/vex.css" />
+        <link rel="stylesheet" type="text/css" href="static/css/vex-theme-wireframe.css" />
+        <link rel="stylesheet" type="text/css" href="static/css/font-awesome.min.css">			
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="plugins/rs-plugin/css/settings.css">
+        <link rel="stylesheet" type="text/css" href="css/skins.css">
+		<link rel="icon" href="static/img/favicon.ico">
+    </head>
+    <body>
+	<script type="application/javascript">
+        <!-- VERSION INFORMATION -->
+        VERSION = "18.10.1";
+    </script>
+				
+        <script id="load-template" type="x-tmpl-mustache">
+            <h2><i class="fa fa-upload"></i> <strong>{{ title }}</strong></h2>
+            <div class="load-drag-target" id="load-drag-target">
+                <p>{{ instructions }}</p>
+            </div>
+            <div class="load-form">
+                <form id="load-form-form">
+                    <input type="file" name="load-form-file-upload"/><br/>
+                    <input type="submit" value="{{ submit }}"/>
+                </form>
+            </div>
+            <div id="load-alt">
+                <p><a href="#" class="load-form load-toggle">{{ toggle-drop }}</a></p>
+                <p><a href="#" class="load-drag-target load-toggle">{{ toggle-file }}</a></p>
+            </div>
+        </script>
+        <script id="snippet-template" type="x-tmpl-mustache">
+            <h2><i class="fa fa-cogs"></i> <strong>{{ title }}</strong></h2>
+            <p>{{ description }}</p>
+            <p>{{ instructions }}</p>
+
+            <table class="snippet-table">
+                <tr>
+                    <th>触发标签</th>
+                    <th>标签描述</th>
+                </tr>
+                {{#snippets}}
+                <tr class="snippet-selection">
+                    <td>{{trigger}}<span class="snippet-name">{{name}}</span></td>
+                    <td>{{#describe}}{{name}}{{/describe}}</td>
+                </tr>
+                {{/snippets}}
+            </table>
+
+        </script>
+        <script id="share-template" type="x-tmpl-mustache">
+            <h2><i class="fa fa-share-alt"></i> <strong>{{ title }}</strong></h2>
+            <div id="make-link">
+                <p>{{ instructions }}</p>
+                <p><label for="passphrase" class="share-label">{{ passphrase }}</label> <input id="passphrase" type="password"/></p>
+                <p><label for="hint" class="share-label">{{ hint }}</label> <input id="hint"/></p>
+                <p><button id="button-create-link">{{ button }}</button></p>
+            </div>
+            <div id="share-link">
+                <p>{{ description }}</p>
+                <textarea id="direct-link" readonly style="width:100%; height:200px;border:0;"></textarea>
+                <p id="shortener" style="display: none;">{{ shortener }} <a href="#" id="short-link"></a></p>
+            </div>
+        </script>
+        <script id="decrypt-template" type="x-tmpl-mustache">
+            <h2><i class="fa fa-unlock-alt"></i> <strong>{{ title }}</strong></h2>
+            <p>{{ instructions }}</p>
+            <p><label for="passphrase" class="share-label">{{ passphrase }}</label> <input id="passphrase" type="password"/></p>
+            <p>{{ hint }}</p>
+            <p><button id="button-decrypt-link">{{ button }}</button></p>
+        </script>
+        <script id="messagebar-template" type="x-tmpl-mustache">
+            <i class="fa fa-warning"></i> <strong>{{ title }}</strong>
+            <a href="#" id="messagebar-link">{{ link }}</a> {{ instructions }}
+            <a href="#" id="messagebar-close">{{ close }}</a>
+        </script>
+        <div id="main" class="vbox">
+          <div id="messagebar" class="hbox"></div>
+          <div id="toolbox" class="hbox">
+            <div id="commands" class="hbox">
+                <a href="#" class="roundbutton" id="command-download"
+                    tabindex="1"
+                    title="从Python Web Editor上下载一个已保存的python代码文件">
+                    <div class="roundsymbol download-img">
+                    </div>	
+                    <div class="roundlabel">云端下载</div>
+                </a><!--ButtonDownload：跳转至我的文件页面-->
+				
+				<a href="#" class="roundbutton" id="command-upload"
+                    tabindex="10"
+                    title="上传python或hex文件到云端服务器上">
+                    <div class="roundsymbol  upload-img">
+                    </div>
+                    <div class="roundlabel">上传云端</div>
+                </a><!--ButtonUpload：代码上传到云端服务器上-->
+				
+				<a href="#" class="roundbutton" id="command-saveHex"
+                    tabindex="2"
+                    title="将你的python代码以py文件的格式保存到本地">
+                    <div class="roundsymbol saveHex-img">
+					</div>
+                    <div class="roundlabel">.Hex保存</div>
+                </a>
+				
+                <a href="#" class="roundbutton" id="command-savePy"
+                    tabindex="2"
+                    title="将你的python代码以py文件的格式保存到本地">
+                    <div class="roundsymbol savePy-img">
+					</div>
+                    <div class="roundlabel">.Py保存</div>
+                </a><!--ButtonSave：本地保存代码-->
+				
+                <a href="#" class="roundbutton" id="command-load"
+                    tabindex="3"
+                    title="打开本地的python或hex文件进行编辑">
+                    <div class="roundsymbol  load-img">
+                        <i class="fa fa-upload"></i>
+                    </div>
+                    <div class="roundlabel">载入代码</div>
+                </a>
+								
+				<a href="#" class="roundbutton hidden" id="command-blockly"
+                    tabindex="4"
+                    title="点击创建可视化拼图代码">
+                    <div class="roundsymbol block-img">
+                    </div>
+                    <div class="roundlabel">模块拼图</div>
+                </a>
+				
+                <a href="#" class="roundbutton hidden" id="command-snippet" tabindex="5"
+                    title="点击选择一个代码框架块(代码段)">
+                    <div class="roundsymbol snippets-img">
+                    </div>
+                    <div class="roundlabel">代码框架块</div>
+                </a>
+				
+				<a href="#" class="roundbutton hidden" id="command-share" tabindex="7"
+                    title="创建一条链接来分享你的脚本代码">
+                    <div class="roundsymbol share-img">
+                    </div>
+                    <div class="roundlabel">分享</div>
+                </a>
+				
+                <a href="help.html" target="_blank" class="roundbutton"
+                    id="command-help" tabindex="6"
+                    title="点击获取对于该编辑器的使用帮助">
+                    <div class="roundsymbol help-img">
+                        <i class="fa fa-question"></i>
+                    </div>
+                    <div class="roundlabel">帮助</div>
+                </a>
+				                				
+                <div id="script-icons" class="vbox">
+                    <a class="holder zoomer" tabindex="8" id="zoom-in"
+                        href="#">
+                        <div class="status-icon zoomin-img" title="单击放大">
+						</div>
+                    </a>
+                    <a class="holder zoomer" tabindex="9" id="zoom-out"
+                        href="#">
+                        <div class="status-icon zoomout-img" title="单击缩小">
+						</div>
+                    </a>
+                </div>
+            </div>
+			<div class="vbox" id="script-box">
+                <div id="script-name" class="flex1" contenteditable
+                    tabindex="10">
+                </div>
+                <div id="script-description" contenteditable
+                    tabindex="11">
+                </div>
+            </div>
+          </div>
+          <div class="hbox flex1">
+            <div id="blockly"></div>
+            <div id="editor" class="flex3" tabindex="-1"></div>
+          </div>
+        </div>
+        <script src="ace/ace.js" type="application/javascript"
+            charset="utf-8"></script>
+        <script src="ace/ext-language_tools.js" type="application/javascript"
+            charset="utf-8"></script>
+        <script src="static/js/jquery-2.1.4.min.js"
+            type="application/javascript"></script>
+        <script src="static/js/forge.min.js" type="application/javascript"></script>
+        <script src="static/js/FileSaver.min.js" type="application/javascript"></script>
+        <script src="static/js/vex.combined.min.js"
+            type="application/javascript"></script>
+        <script src="static/js/encoding.js" type="application/javascript"></script>
+        <script src="static/js/mustache.min.js"
+            type="application/javascript"></script>
+        <script src="blockly/blockly_compressed.js"></script>
+        <script src="blockly/blocks_compressed.js"></script>
+        <script src="blockly/python_compressed.js"></script>
+        <script src="tpyboard_blocks/blocks/tpyboard.js"></script>
+        <script src="tpyboard_blocks/definitions/uart.js"></script>
+        <script src="tpyboard_blocks/definitions/spi.js"></script>
+        <script src="tpyboard_blocks/definitions/i2c.js"></script>
+        <script src="tpyboard_blocks/definitions/timer.js"></script>
+        <script src="tpyboard_blocks/definitions/pwm.js"></script>
+        <script src="tpyboard_blocks/definitions/newfun.js"></script>
+
+        <script src="tpyboard_blocks/generators/leds.js"></script>
+        <script src="tpyboard_blocks/generators/pins.js"></script>
+        <script src="tpyboard_blocks/generators/exints.js"></script>
+        <script src="tpyboard_blocks/generators/switch.js"></script>
+        <script src="tpyboard_blocks/generators/newfun.js"></script>
+        <script src="tpyboard_blocks/generators/pyb.js"></script>
+        <script src="tpyboard_blocks/generators/servo.js"></script>
+        <script src="tpyboard_blocks/generators/accel.js"></script>
+        <script src="tpyboard_blocks/generators/dac.js"></script>
+        <script src="tpyboard_blocks/generators/adc.js"></script>
+        <script src="tpyboard_blocks/generators/uart.js"></script>
+        <script src="tpyboard_blocks/generators/spi.js"></script>
+        <script src="tpyboard_blocks/generators/i2c.js"></script>
+        <script src="tpyboard_blocks/generators/timer.js"></script>
+        <script src="tpyboard_blocks/generators/pwm.js"></script>
+        <script src="tpyboard_blocks/generators/python.js"></script>
+        <script src="blockly/msg/js/zh-hans.js"></script>
+	    <script src="tpyboard_blocks/messages/en/messages.js"></script>
+        <script src="static/js/ResizeSensor.js"></script>
+        <script src="static/js/ElementQueries.js"></script>
+        <script src="python-main.js" type="application/javascript"></script>
+		
+		<script src="dataexchange.js" type="application/javascript"></script>
+		
+        <script>vex.defaultOptions.className = 'vex-theme-wireframe';</script>
+        <script>
+// Call the web_editor function to start the editor running.
+web_editor({
+    'translate': {
+      'code_snippets': {
+        'title': '代码框架块',
+        'description': "代码框架块是小型代码块，包括了你可以应用在自己项目中的，可重用常见代码。",
+        'instructions': "你可以通过点击选择下方的一个框架块，或者输入一个框架块的触发标签",
+        'trigger_heading': '触发标签',
+        'description_heading': '标签描述',
+        'docs': '创建一条注释来描述你的代码',
+        'wh': '当某些条件为真时，循环执行某段语句',
+        'with': '对已赋值的某变量进行某些操作',
+        'cl': '创建一个新类，来定义一类新事物的行为特征',
+        'def': '定义一个已命名的功能，该功能中包含了一些参数，并可以选择性的添加一些注释',
+        'if': 'if中的条件为真时，执行某些语句',
+        'ei': 'if条件外的某些情况为真，执行某些语句',
+        'el': 'if及else if条件外的情况，执行某些语句',
+        'for': '对于对象集合中的每一个对象，都执行相同的一些语句',
+        'try': '运行try中的语句操作，并进行抛出异常处理（包括错误）'
+      },
+      'share': {
+        'title': '分享代码',
+        'instructions': '设置一个密码，并设置一些提示（帮你更好的记住密码），从而安全地创建一条链接，分享你的代码。',
+        'passphrase': '密码: ',
+        'hint': '密码提示: ',
+        'button': '创建链接',
+        'description': '这是指向你所分享的代码的URL网址:',
+        'shortener': '这是分享链接的精简版本:'
+      },
+      'decrypt': {
+        'title': '编译执行源代码',
+        'instructions': '输入一个密码来编译执行该源代码.',
+        'passphrase': '密码: ',
+        'button': '编译执行'
+      },
+      'alerts': {
+        'download': 'Safari存在一个错误，这意味着您的工作将作为未命名文件被下载。请将它重命名为以.hex结尾的文件。或者，使用火狐或Chrome等浏览器。它们不受这个bug的影响',
+        'save': 'Safari存在一个错误，这意味着您的工作将作为未命名文件被下载。请将它重命名为以.py结尾的文件。或者，使用火狐或Chrome等浏览器。它们不受这个bug的影响',
+        'length': '哦噢！你的代码段长度过长！将超出设备有限的内存！',
+        'snippets': '当启用模块时，代码片段将被禁用'
+      },
+      'confirms': {
+        'quit': "当前的一些修改并未保存，仍要退出？",
+        'blocks': "当前存在未保存的代码。使用模块将会对你的代码进行修改，从而可能丢失某些你修改的内容，仍要继续？"
+      },
+      'code': {
+        'start': "# 在此处编写添加你的python代码. E.g.\n" +
+                 "from microbit import *\n\n\n" +
+                 "while True:\n" +
+                 "    display.scroll('Hello, World!')\n" +
+                 "    display.show(Image.HEART)\n" +
+                 "    sleep(2000)\n"
+      },
+      'drop': {
+        'python': '从Python文件中导入代码',
+        'hex': '从hex文件中导入代码'
+      },
+      'messagebar': {
+        'title': '该编辑器为旧版本！',  
+        'link': '点击此处',
+        'instructions': '打开最新版本',
+        'close': '隐藏'
+      },
+      'load': {
+        'title': '载入脚本或hex文件',
+        'instructions': '拖放一个.hex或.py文件到这里打开',
+        'submit': '载入',
+        'toggle-drop': '或拖放一个文件',
+        'toggle-file': '或选择一个文件'
+      }
+    },
+    'flags': {
+      'blocks': true,
+      'snippets': true,
+      'share': true,
+      'experimental': false
+    },
+});
+        </script>
+
+		<xml id="blockly-toolbox"><!--style="display: none"-->
+			<category ename="BoardLeds" name="板载LED" colour="0">
+  				<block type="board_led_c"><value name="id"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+				<block type="board_led_get"></block>
+				<block type="board_led_set"><value name="value"><shadow type="math_number"><field name="NUM">255</field></shadow></value></block>
+    
+				<block type="board_led_init"></block>
+    
+				<block type="board_led"></block>
+    
+				<block type="board_led_get_i"></block>
+    
+				<block type="board_led_set_i"><value name="value"><shadow type="math_number"><field name="NUM">255</field></shadow></value></block>
+  
+			</category>
+  
+			<category ename="Pin" name="引脚" colour="32">
+    
+				<block type="pin_init"><value name="pinname"><shadow type="text"><field name="TEXT">X1</field></shadow></value></block>
+    
+				<block type="pin_value_get"></block>
+    
+				<block type="pin_value_set"></block>
+    
+				<block type="pin_mode_get"></block>
+    
+				<block type="pin_name_get"></block>
+    
+				<block type="pin_add_get"></block>
+  
+			</category>
+  
+			<category ename="ExInt" name="外部中断" colour="64">
+   
+				<block type="exint_init"><value name="pinname"><shadow type="text"><field name="TEXT">X1</field></shadow></value></block>
+   
+				<block type="exint_disable"></block>
+   
+				<block type="exint_enable"></block>
+   
+				<block type="exint_line"></block>
+  
+			</category>
+  
+			<category ename="Switch" name="板载USR按键" colour="96">
+				<block type="switch_init"></block>
+				<block type="switch_state"></block>
+				<block type="switch_none"></block>
+				<block type="switch_callback"></block>
+			</category>
+			
+			<category ename="Time" name="时间函数" colour="128">
+				<block type="time_sleep"><value name="time"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+				<block type="ticks_ms"></block>
+				<block type="ticks_diff"></block>
+			</category>
+			
+			<category ename="Basic" name="基本功能" colour="160">
+				<block type="pyb_delay"><value name="time"><shadow type="math_number"><field name="NUM">1000</field></shadow></value></block>
+				<block type="get_time"></block>
+				<block type="hard_reset"></block>
+				<block type="disable_irq"></block>
+				<block type="enable_irq"></block>
+			</category>
+  
+			<category ename="Servo" name="舵机控制" colour="192">
+				<block type="servo_init"></block>
+				<block type="servo_angle"><value name="id"></value><value name="angle"><shadow type="math_number"><field name="NUM">45</field></shadow></value></block>
+				<block type="get_angle"></block>
+				<block type="set_speed"><value name="id"></value><value name="speed"><shadow type="math_number"><field name="NUM">50</field></shadow></value></block>
+				<block type="set_time_angle">
+					<value name="id"></value>
+					<value name="time">
+						<shadow type="math_number"><field name="NUM">1500</field></shadow>
+					</value>
+					<value name="angle">
+						<shadow type="math_number"><field name="NUM">60</field></shadow>
+					</value>
+				</block>
+			</category>
+    
+			<category ename="Accel" name="加速度传感器" colour="224">
+				<block type="accel_init"></block>
+				<block type="accel_get_xyz"> <value name="accel"></value></block>
+				<block type="accel_get_x"> <value name="accel"></value></block>
+				<block type="accel_get_y"> <value name="accel"></value></block>
+				<block type="accel_get_z"> <value name="accel"></value></block>
+				<block type="accel_get_tilt"> <value name="accel"></value></block>
+			</category>
+			
+			<category ename="DAC" name="数模转换(DAC)" colour="256">
+				<block type="dac_new"></block>
+				<block type="dac_init"></block>
+				<block type="dac_write"><value name="num"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+				<block type="dac_deinit"></block>
+			</category>
+   
+			<category ename="ADC" name="模数转换(ADC)" colour="0">
+				<block type="adc_new"></block>
+				<block type="adc_read"></block>
+				<block type="adc_all_new"></block>
+				<block type="adc_all_channel">
+					<value name="adc"></value>
+					<value name="channel"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+				</block>
+				<block type="adc_read_temp">
+					<value name="adc"></value>
+				</block>
+				<block type="adc_read_vbat">
+					<value name="adc"></value>
+				</block>
+				<block type="adc_read_verf">
+					<value name="adc"></value>
+				</block>
+			</category>
+   
+			<category ename="UART" name="双工串行通信(UART)" colour="32">
+				<block type="uart_init">
+					<value name="baudrate"><shadow type="math_number"><field name="NUM">9600</field></shadow></value>
+					<value name="timeout"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
+        		</block> 
+        		<block type="uart_deinit"><value name="uart"></value></block>
+        		<block type="uart_read_num"><value name="uart"></value><value name="num"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+        		<block type="uart_read_all"><value name="uart"></value></block>
+        		<block type="uart_read_decode"></block>
+        		<block type="uart_any"><value name="uart"></value></block>
+        		<block type="uart_write"><value name="uart"></value><value name="str"><shadow type="text"><field name="TEXT">hello</field></shadow></value></block>
+			</category>
+   
+			<category ename="SPI" name="串行外设接口(SPI)" colour="64">
+				<block type="spi_init">
+					<value name="baudrate"><shadow type="math_number"><field name="NUM">1000000</field></shadow></value>
+              		<value name="bits"><shadow type="math_number"><field name="NUM">8</field></shadow></value>  
+         		</block>
+         		<block type="spi_deinit"><value name="spi"></value></block>
+         		<block type="spi_rev_num"><value name="spi"></value><value name="num"><shadow type="math_number"><field name="NUM">2</field></shadow></value></block>
+         		<block type="spi_send_str"><value name="spi"></value><value name="text"><shadow type="text"><field name="TEXT">hello</field></shadow></value></block>
+   			</category>
+			
+			<category ename="I2C" name="两线串行通信(IIC)" colour="96">
+				<block type="i2c_init_0">
+            		<value name="baudrate"><shadow type="math_number"><field name="NUM">100000</field></shadow></value>
+        		</block>
+        		<block type="i2c_init_1">
+            		<value name="addr"><shadow type="text"><field name="TEXT">0x42</field></shadow></value>
+        		</block>
+        		<block type="i2c_scan"><value name="i2c"></value></block>
+        		<block type="i2c_send">
+            		<value name="i2c"></value>
+            		<value name="text"><shadow type="text"><field name="TEXT">hello</field></shadow></value>
+            		<value name="addr"><shadow type="text"><field name="TEXT">0x42</field></shadow></value>
+        		</block>
+        		<block type="i2c_send_s">
+            		<value name="i2c"></value>
+            		<value name="text"><shadow type="text"><field name="TEXT">hello</field></shadow></value>
+        		</block>
+        		<block type="i2c_recv">
+            		<value name="i2c"></value>
+            		<value name="addr"><shadow type="text"><field name="TEXT">0x42</field></shadow></value>
+            		<value name="num"><shadow type="math_number"><field name="NUM">2</field></shadow></value>
+        		</block>
+        		<block type="i2c_recv_s">
+            		<value name="i2c"></value>
+            		<value name="num"><shadow type="math_number"><field name="NUM">2</field></shadow></value>
+        		</block>
+        		<block type="i2c_deinit"><value name="i2c"></value></block>
+   			</category>
+			
+			<category ename="Timer" name="定时器(Timer)" colour="128">
+				<block type="timer_init">
+            		<value name="id"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+            		<value name="freq"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+				</block>
+        		<block type="timer_callbakc_none"><value name="timer"></value></block>
+        		<block type="timer_deinit"></block>
+    		</category>
+			
+			<category ename="PWM" name="脉宽调制(PWM)" colour="160">
+				<block type="pwm_init"></block>
+       			<block type="pwm_pulse_width"><value name="pwm"></value><value name="pulse"><shadow type="math_number"><field name="NUM">125</field></shadow></value></block>
+       			<block type="pwm_pulse_width_get"></block>
+       			<block type="pwm_pulse_width_percent"></block>
+       			<block type="pwm_pulse_width_percent_get"></block>
+    		</category>
+    
+			<sep></sep>
+			
+			<category ename="Function" name="函数" colour="192">
+				<block type="create_function">
+		    		<value name="name">
+						<shadow type="text">
+							<field name="TEXT">test</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="call_function">
+					<value name="name">
+						<shadow type="text">
+							<field name="TEXT">test</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="call_function2">
+					<value name="name">
+						<shadow type="text">
+							<field name="TEXT">test</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="call_function3">
+					<value name="name">
+						<shadow type="text">
+							<field name="TEXT">test</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="global_var">
+				</block>
+			</category>
+			
+			<category ename="Logic" name="逻辑" colour="210">
+				<block type="controls_if"></block>
+				<block type="logic_compare"></block>
+				<block type="logic_operation"></block>
+	      		<block type="logic_negate"></block>
+	      		<block type="logic_boolean"></block>
+	      		<block type="logic_null"></block>
+	      		<block type="logic_ternary"></block>
+	    	</category>
+			
+			<category ename="Loops" name="循环" colour="120">
+				<block type="controls_repeat_ext">
+					<value name="TIMES">
+						<shadow type="math_number">
+							<field name="NUM">10</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="controls_whileUntil"></block>
+				<block type="controls_for">
+					<value name="FROM">
+						<shadow type="math_number">
+							<field name="NUM">1</field>
+						</shadow>
+					</value>
+					<value name="TO">
+						<shadow type="math_number">
+							<field name="NUM">10</field>
+						</shadow>
+					</value>
+					<value name="BY">
+						<shadow type="math_number">
+							<field name="NUM">1</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="controls_forEach"></block>
+				<block type="controls_flow_statements"></block>
+			</category>
+			
+			<category ename="Math" name="数字" colour="230">
+				<block type="math_number" gap="32"></block>
+				<block type="math_arithmetic">
+					<value name="A">
+						<shadow type="math_number">
+							<field name="NUM">1</field>
+						</shadow>
+					</value>
+					<value name="B">
+						<shadow type="math_number">
+							<field name="NUM">1</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="math_single">
+					<value name="NUM">
+						<shadow type="math_number">
+							<field name="NUM">9</field>
+						</shadow>
+					</value>
+				</block>
+				<block type="math_trig">
+					<value name="NUM">
+						<shadow type="math_number">
+							<field name="NUM">45</field>
+						</shadow>
+		</value>
+	      </block>
+	      <block type="math_constant"></block>
+	      <block type="math_number_property">
+		<value name="NUMBER_TO_CHECK">
+		  <shadow type="math_number">
+		    <field name="NUM">0</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="math_round">
+		<value name="NUM">
+		  <shadow type="math_number">
+		    <field name="NUM">3.1</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="math_on_list"></block>
+	      <block type="math_modulo">
+		<value name="DIVIDEND">
+		  <shadow type="math_number">
+		    <field name="NUM">64</field>
+		  </shadow>
+		</value>
+		<value name="DIVISOR">
+		  <shadow type="math_number">
+		    <field name="NUM">10</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="math_constrain">
+		<value name="VALUE">
+		  <shadow type="math_number">
+		    <field name="NUM">50</field>
+		  </shadow>
+		</value>
+		<value name="LOW">
+		  <shadow type="math_number">
+		    <field name="NUM">1</field>
+		  </shadow>
+		</value>
+		<value name="HIGH">
+		  <shadow type="math_number">
+		    <field name="NUM">100</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="math_random_int">
+		<value name="FROM">
+		  <shadow type="math_number">
+		    <field name="NUM">1</field>
+		  </shadow>
+		</value>
+		<value name="TO">
+		  <shadow type="math_number">
+		    <field name="NUM">100</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="math_random_float"></block>
+	    </category>
+	    <category ename="Text" name="文本" colour="160">
+	      <block type="text"></block>
+	      <block type="text_join"></block>
+	      <block type="text_append">
+		<value name="TEXT">
+		  <shadow type="text"></shadow>
+		</value>
+	      </block>
+	      <block type="text_length">
+		<value name="VALUE">
+		  <shadow type="text">
+		    <field name="TEXT">abc</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="text_isEmpty">
+		<value name="VALUE">
+		  <shadow type="text">
+		    <field name="TEXT"></field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="text_indexOf">
+		<value name="VALUE">
+		  <block type="variables_get">
+		    <field name="VAR">text</field>
+		  </block>
+		</value>
+		<value name="FIND">
+		  <shadow type="text">
+		    <field name="TEXT">abc</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="text_charAt">
+		<value name="VALUE">
+		  <block type="variables_get">
+		    <field name="VAR">text</field>
+		  </block>
+		</value>
+	      </block>
+	      <block type="text_getSubstring">
+		<value name="STRING">
+		  <block type="variables_get">
+		    <field name="VAR">text</field>
+		  </block>
+		</value>
+	      </block>
+	      <block type="text_changeCase">
+		<value name="TEXT">
+		  <shadow type="text">
+		    <field name="TEXT">abc</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="text_trim">
+		<value name="TEXT">
+		  <shadow type="text">
+		    <field name="TEXT">abc</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="text_print">
+		<value name="TEXT">
+		  <shadow type="text">
+		    <field name="TEXT">abc</field>
+		  </shadow>
+		</value>
+	      </block>
+	    </category>
+	    <category ename="Lists" name="列表" colour="260">
+	      <block type="lists_create_with">
+		<mutation items="0"></mutation>
+	      </block>
+	      <block type="lists_create_with"></block>
+	      <block type="lists_repeat">
+		<value name="NUM">
+		  <shadow type="math_number">
+		    <field name="NUM">5</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="lists_length"></block>
+	      <block type="lists_isEmpty"></block>
+	      <block type="lists_indexOf">
+		<value name="VALUE">
+		  <block type="variables_get">
+		    <field name="VAR">list</field>
+		  </block>
+		</value>
+	      </block>
+	      <block type="lists_getIndex">
+		<value name="VALUE">
+		  <block type="variables_get">
+		    <field name="VAR">list</field>
+		  </block>
+		</value>
+	      </block>
+	      <block type="lists_setIndex">
+		<value name="LIST">
+		  <block type="variables_get">
+		    <field name="VAR">list</field>
+		  </block>
+		</value>
+	      </block>
+	      <block type="lists_getSublist">
+		<value name="LIST">
+		  <block type="variables_get">
+		    <field name="VAR">list</field>
+		  </block>
+		</value>
+	      </block>
+	      <block type="lists_split">
+		<value name="DELIM">
+		  <shadow type="text">
+		    <field name="TEXT">,</field>
+		  </shadow>
+		</value>
+	      </block>
+	      <block type="lists_sort"></block>
+	    </category>
+	    <sep></sep>
+	    <category ename="Variables" name="变量" colour="330" custom="VARIABLE"></category>
+	  </xml>
+
+<!--<script>
+    $(function () {
+        $("#command-blockly").click();
+
+        $("#blockly").height($("#blockly").parent().height());
+        $("#blockly").width("50%");
+
+    });
+</script>-->
+<!--If you want to change the front sight to the blockly, then you can active these codes.-->
+        
+	</body>
+</html>
